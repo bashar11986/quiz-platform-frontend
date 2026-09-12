@@ -74,17 +74,21 @@ export default function QuizResultPage() {
     );
   }
 
-  const percentage = result.percentage ?? result.score ?? null;
-  const passed = result.passed;
   const correct = result.correct_answers;
   const total = result.total_questions;
   const wrong = total !== undefined && correct !== undefined ? total - correct : null;
+  const percentage =
+    correct !== undefined && total !== undefined && total > 0
+      ? Math.round((correct / total) * 100)
+      : null;
+  const passed = percentage !== null ? percentage >= 50 : (result.passed ?? false);
+  const backendScore = result.score ?? null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12" dir="rtl">
       <div className="max-w-lg w-full mx-4">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Header ملوّن */}
+          {/* Colored header */}
           <div className={`px-8 py-10 text-center ${passed ? 'bg-green-500' : 'bg-red-500'}`}>
             <div className="text-6xl mb-4">{passed ? '🎉' : '😔'}</div>
             <h1 className="text-2xl font-bold text-white mb-1">
@@ -93,15 +97,20 @@ export default function QuizResultPage() {
             {quizTitle && <p className="text-white/80 text-sm mt-1">{quizTitle}</p>}
           </div>
 
-          {/* النتيجة */}
+          {/* Result */}
           <div className="px-8 py-8 text-center">
             {percentage !== null && (
-              <div className={`text-7xl font-bold mb-2 ${passed ? 'text-green-600' : 'text-red-600'}`}>
-                {typeof percentage === 'number' ? `${Math.round(percentage)}%` : percentage}
+              <div className="mb-2">
+                <div className={`text-7xl font-bold ${passed ? 'text-green-600' : 'text-red-600'}`}>
+                  {percentage}%
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  النسبة: {percentage}% &nbsp;|&nbsp; النقاط: {backendScore !== null ? Math.round(backendScore) : '—'}
+                </p>
               </div>
             )}
 
-            {/* إحصائيات */}
+            {/* Statistics */}
             {(correct !== undefined || wrong !== null) && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 {correct !== undefined && (

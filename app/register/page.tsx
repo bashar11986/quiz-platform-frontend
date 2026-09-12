@@ -1,9 +1,9 @@
-'use client'; // ضروري لأننا نستخدم حالات (States) وتفاعلات من جهة العميل
+'use client'; // Required because we use client-side states and interactions
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-// --- مكونات الأيقونات (Eye Icons) مدمجة كـ SVG ---
+// --- Eye Icon components embedded as SVG ---
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -20,15 +20,15 @@ const EyeSlashIcon = () => (
 export default function Register() {
   const router = useRouter();
   
-  // 1. إضافة حقل password2 إلى الـ State
+  // 1. Add the password2 field to the state
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    password2: '', // الحقل الجديد
+    password2: '', // New field
   });
   
-  // 2. حالات لإظهار وإخفاء كلمات المرور
+  // 2. States for showing and hiding passwords
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
 
@@ -47,7 +47,7 @@ export default function Register() {
     setLoading(true);
     setError(null);
 
-    // التحقق من تطابق كلمات المرور في الواجهة قبل إرسالها للسيرفر
+    // Validate that passwords match on the frontend before sending to the server
     if (formData.password !== formData.password2) {
       setError("كلمات المرور غير متطابقة!");
       setLoading(false);
@@ -61,7 +61,7 @@ export default function Register() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(formData), // سيتم الآن إرسال password2 ضمن البيانات
+        body: JSON.stringify(formData), // password2 will now be included in the submitted data
       });
 
       const data = await response.json();
@@ -70,7 +70,7 @@ export default function Register() {
         alert('تم التسجيل بنجاح!');
         router.push('/login'); 
       } else {
-        // ترتيب عرض الأخطاء لتكون مقروءة للمستخدم بدلاً من شكل JSON
+        // Format error messages to be human-readable instead of raw JSON
         let errorMessages = Object.values(data).flat().join(' | ');
         setError(errorMessages || JSON.stringify(data));
       }
@@ -118,7 +118,7 @@ export default function Register() {
             />
           </div>
 
-          {/* 3. حقل كلمة المرور مع زر الإظهار/الإخفاء */}
+          {/* 3. Password field with show/hide toggle button */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">كلمة المرور</label>
             <div className="relative">
@@ -141,7 +141,7 @@ export default function Register() {
             </div>
           </div>
 
-          {/* 4. الحقل الجديد: تأكيد كلمة المرور */}
+          {/* 4. New field: confirm password */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">تأكيد كلمة المرور</label>
             <div className="relative">

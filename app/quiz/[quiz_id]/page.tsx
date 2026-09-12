@@ -119,7 +119,7 @@ export default function QuizPage() {
         }),
       });
     } catch {
-      // الإجابة محفوظة محلياً
+      // Answer is saved locally
     }
   };
 
@@ -172,7 +172,7 @@ export default function QuizPage() {
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* Header ثابت */}
+      {/* Fixed header */}
       <nav className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
@@ -199,7 +199,7 @@ export default function QuizPage() {
       </nav>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {/* بطاقة السؤال */}
+        {/* Question card */}
         <div className="bg-white rounded-2xl shadow-md p-8 mb-6">
           <p className="text-xl font-bold text-gray-800 leading-relaxed mb-8">
             {currentIndex + 1}. {questionText}
@@ -225,7 +225,7 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* أزرار التنقل */}
+        {/* Navigation buttons */}
         <div className="flex justify-between items-center">
           <button
             onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
@@ -235,7 +235,7 @@ export default function QuizPage() {
             ← السابق
           </button>
 
-          {/* نقاط الأسئلة */}
+          {/* Question dots */}
           <div className="flex gap-1.5 flex-wrap justify-center max-w-xs">
             {questions.map((q, i) => (
               <button
@@ -273,7 +273,7 @@ export default function QuizPage() {
           )}
         </div>
 
-        {/* تحذير الأسئلة غير المجابة */}
+        {/* Unanswered questions warning */}
         {currentIndex === questions.length - 1 && answeredCount < questions.length && (
           <div className="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl px-4 py-3 text-sm">
             تنبيه: لم تجب على {questions.length - answeredCount} سؤال بعد.

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '../../components/ToastProvider';
 
-// --- مكونات الأيقونات (Eye Icons) مدمجة كـ SVG ---
+// --- Eye Icon components embedded as SVG ---
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -19,7 +20,7 @@ const EyeSlashIcon = () => (
 
 export default function Login() {
   const router = useRouter();
-  
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -36,7 +37,7 @@ export default function Login() {
     });
   };
 
-  // دالة مخصصة لجلب حالة الحساب بعد نجاح تسجيل الدخول
+  // Custom function to fetch account status after successful login
   const fetchAccountStatus = async (accessToken: string) => {
     try {
       const response = await fetch('/api/auth/account-status/', {
@@ -44,21 +45,21 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          // إرفاق التوكن لإثبات هوية المستخدم للسيرفر
+          // Attach the token to authenticate the user with the server
           'Authorization': `Bearer ${accessToken}`, 
         },
       });
 
       if (response.ok) {
         const statusData = await response.json();
-        // حفظ تفاصيل حالة الحساب في LocalStorage (أو يمكنك استخدام Context/Redux لاحقاً)
+        // Save account status details in LocalStorage (or use Context/Redux later)
         localStorage.setItem('account_status', JSON.stringify(statusData));
         console.log("Account Status Retrieved:", statusData);
       } else {
-        console.error("فشل في جلب حالة الحساب");
+        console.error("Failed to fetch account status");
       }
     } catch (err) {
-      console.error("خطأ في الاتصال أثناء جلب حالة الحساب", err);
+      console.error("Connection error while fetching account status", err);
     }
   };
 
@@ -68,7 +69,7 @@ export default function Login() {
     setError(null);
 
     try {
-      // 1. إرسال طلب تسجيل الدخول
+      // 1. Send the login request
       const response = await fetch('/api/auth/login/', {
         method: 'POST',
         headers: {
@@ -81,21 +82,29 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // 2. الاحتفاظ بالتوكنز وبيانات المستخدم في التخزين المحلي للمتصفح
+        // 2. Store tokens and user data in the browser's local storage
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userRole', data.user?.role ?? '');
+        // Set cookie so middleware can read the token for /admin route protection
+        document.cookie = `accessToken=${data.access}; path=/; SameSite=Lax`;
 
-        // 3. جلب حالة الحساب باستخدام الـ access token الجديد
+        // 3. Fetch account status using the new access token
         await fetchAccountStatus(data.access);
 
-        alert('تم تسجيل الدخول بنجاح!');
-        // 4. توجيه المستخدم لصفحة لوحة التحكم أو الصفحة الرئيسية
-        router.push('/dashboard'); 
+        showToast('تم تسجيل الدخول بنجاح!', 'success');        // 4. Redirect the user to the dashboard or home page
+        // Redirect user to dashboard
+                setTimeout(() => {
+                    router.push('/dashboard');
+                }, 1000);
+
+
       } else {
-        // عرض رسالة الخطأ (مثل: بيانات الاعتماد غير صحيحة)
+        // Display the error message (e.g., invalid credentials)
         let errorMessages = data.detail || Object.values(data).flat().join(' | ');
-        setError(errorMessages || 'فشل تسجيل الدخول');
+        // Trigger error toast
+        showToast('فشل تسجيل الدخول، تأكد من بياناتك', 'error');
       }
     } catch (err) {
       setError('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.');
@@ -161,6 +170,16 @@ export default function Login() {
             {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
           </button>
         </form>
+
+        <div className="mt-6 text-center border-t pt-5">
+          <p className="text-gray-600 text-sm mb-3">ليس لديك حساب؟</p>
+          <button
+            onClick={() => router.push('/register')}
+            className="w-full bg-gray-50 border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-100 transition duration-200"
+          >
+            تسجيل حساب جديد
+          </button>
+        </div>
       </div>
     </div>
   );
