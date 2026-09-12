@@ -11,6 +11,7 @@ interface Choice {
 interface Question {
   id: number;
   question_text: string;
+  question_type: 'mcq' | 'true_false' | 'short_answer';
   choices: Choice[];
 }
 
@@ -23,6 +24,7 @@ export default function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [textAnswers, setTextAnswers] = useState<Record<number, string>>({});
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -123,6 +125,33 @@ export default function QuizPage() {
     }
   };
 
+  const handleTextAnswer = async (questionId: number, text: string) => {
+    setTextAnswers(prev => ({ ...prev, [questionId]: text }));
+
+    if (!text.trim()) return;
+
+    const token = localStorage.getItem('access_token');
+    const attemptId = localStorage.getItem('current_attempt_id');
+
+    try {
+      await fetch('/api/attempts/submit-answer/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          attempt_id: parseInt(attemptId!),
+          question_id: questionId,
+          answer_text: text,
+        }),
+      });
+    } catch {
+      // Answer is saved locally
+    }
+  };
+
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
     const s = (secs % 60).toString().padStart(2, '0');
@@ -168,7 +197,10 @@ export default function QuizPage() {
 
   const currentQuestion = questions[currentIndex];
   const questionText = currentQuestion.question_text;
-  const answeredCount = Object.keys(answers).length;
+  const isShortAnswer = (q: Question) => q.question_type === 'short_answer';
+  const isAnswered = (q: Question) =>
+    isShortAnswer(q) ? !!textAnswers[q.id]?.trim() : answers[q.id] !== undefined;
+  const answeredCount = questions.filter(isAnswered).length;
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -205,24 +237,42 @@ export default function QuizPage() {
             {currentIndex + 1}. {questionText}
           </p>
 
-          <div className="space-y-3">
-            {currentQuestion.choices.map((choice) => {
-              const selected = answers[currentQuestion.id] === choice.id;
-              return (
-                <button
-                  key={choice.id}
-                  onClick={() => handleSelectAnswer(currentQuestion.id, choice.id)}
-                  className={`w-full text-right px-5 py-4 rounded-xl border-2 font-medium transition-all duration-150 ${
-                    selected
-                      ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-sm'
-                      : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {choice.choice_text}
-                </button>
-              );
-            })}
-          </div>
+          {currentQuestion.question_type === 'short_answer' ? (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">
+                اكتب إجابتك:
+              </label>
+              <textarea
+                value={textAnswers[currentQuestion.id] ?? ''}
+                onChange={(e) => handleTextAnswer(currentQuestion.id, e.target.value)}
+                rows={4}
+                placeholder="اكتب إجابتك هنا..."
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-800 font-medium resize-none focus:outline-none focus:border-blue-500 focus:bg-blue-50 transition-all duration-150"
+              />
+              {textAnswers[currentQuestion.id]?.trim() && (
+                <p className="text-xs text-green-600 font-medium">✓ تم حفظ إجابتك</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {currentQuestion.choices.map((choice) => {
+                const selected = answers[currentQuestion.id] === choice.id;
+                return (
+                  <button
+                    key={choice.id}
+                    onClick={() => handleSelectAnswer(currentQuestion.id, choice.id)}
+                    className={`w-full text-right px-5 py-4 rounded-xl border-2 font-medium transition-all duration-150 ${
+                      selected
+                        ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-sm'
+                        : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {choice.choice_text}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Navigation buttons */}
@@ -245,7 +295,7 @@ export default function QuizPage() {
                 className={`w-7 h-7 rounded-full text-xs font-bold transition-all ${
                   i === currentIndex
                     ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-                    : answers[q.id]
+                    : isAnswered(q)
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                 }`}

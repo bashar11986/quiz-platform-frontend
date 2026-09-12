@@ -48,14 +48,14 @@ export default function AdminQuizzesPage() {
     const token = localStorage.getItem('access_token');
     setTogglingId(quiz.id);
     try {
-      const res = await fetch(`/api/quizzes/${quiz.id}/`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/quizzes/${quiz.id}/publish/`, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ is_published: !quiz.is_published }),
+        body: JSON.stringify({ publish: !quiz.is_published }),
       });
       if (!res.ok) throw new Error();
       setQuizzes((prev) =>

@@ -76,7 +76,7 @@ export default function Dashboard() {
             fetch('/api/quizzes/', fetchOptions)
           ]);
         } else {
-          console.error('Refresh token is invalid or expired. Terminating session.');
+          console.warn('Refresh token is invalid or expired. Terminating session.');
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('user');
@@ -171,12 +171,20 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-4 items-center">
           {(userRole === 'admin' || userRole === 'instructor') && (
-            <button
-              onClick={handleAdminNavigation}
-              className="bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 transition"
-            >
-              إضافة اختبار جديد
-            </button>
+            <>
+              <button
+                onClick={() => router.push('/admin/quizzes')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition"
+              >
+                إدارة الاختبارات
+              </button>
+              <button
+                onClick={handleAdminNavigation}
+                className="bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 transition"
+              >
+                إضافة اختبار جديد
+              </button>
+            </>
           )}
           <button
             onClick={() => router.push('/student/attempts')}
