@@ -187,6 +187,12 @@ export default function Dashboard() {
             </>
           )}
           <button
+            onClick={() => router.push('/files')}
+            className="bg-purple-50 text-purple-700 hover:bg-purple-100 px-4 py-2 rounded-md font-medium transition"
+          >
+            رفع الملفات
+          </button>
+          <button
             onClick={() => router.push('/student/attempts')}
             className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-md font-medium transition"
           >
